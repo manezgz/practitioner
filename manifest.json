@@ -1,0 +1,7 @@
+{
+  "name": "currobanco",
+  "short_name": "currobanco",
+  "description": "CurroBanco for practitionar bootcamp",
+  "start_url": "/",
+  "display": "standalone"
+}

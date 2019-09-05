@@ -1,0 +1,102 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+
+<dom-module id="visor-usuario">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h3>Bienvenido [[userid]] !!</h3>
+    <input type="text" value="{{first_name::input}}"></input></br>
+    <input type="text" value="{{last_name::input}}"></input></br>
+    <input type="text" value="{{mobile_phone::input}}"></input></br>
+    <button on-click="edituserdata">Edit</button>
+    <iron-ajax
+      id="getUser"
+      url="https://localhost:8000/currobanco/v1/api/services/users/{{userid}}"
+      handle-as="json"
+      on-response="showData">
+    </iron-ajax>
+    <iron-ajax
+      id="updateUser"
+      method="PUT"
+      url="https://localhost:8000/currobanco/v1/api/services/users/{{userid}}"
+      handle-as="json"
+      on-response="editUserResponse">
+    </iron-ajax>
+
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class VisorUsuario extends Polymer.Element {
+      static get is() { return 'visor-usuario'; }
+      static get properties() {
+        return {
+          first_name: {
+            type: String
+          }, last_name: {
+            type: String
+          }, email: {
+            type: String
+          }, mobile_phone: {
+            type: String
+          }, userid:{
+            type: Number,
+            observer: "_useridchanged"
+          }
+
+        };
+      }
+
+      showData(data){
+        console.log("Estoy en visor-usuario");
+        console.log("Ha llegado respuesta");
+        console.log(data.detail.response);
+        console.log(data.detail.response.id);
+        console.log(data.detail.response.first_name);
+        console.log(data.detail.response.last_name);
+        console.log(data.detail.response.email);
+        this.first_name = data.detail.response.first_name;
+        this.last_name=data.detail.response.last_name;
+        this.email=data.detail.response.email;
+        this.mobile_phone=data.detail.response.mobile_phone;
+      }
+
+      editUserResponse(data){
+        console.log(data);
+      }
+
+      _useridchanged(newValue,oldValue){
+        //El dolar es para acceso al elemento local
+        this.$.getUser.generateRequest();
+      }
+
+      edituserdata(){
+        var userData = {
+          "email":this.userid,
+          "first_name":this.first_name,
+          "last_name":this.last_name,
+          "mobile_phone":this.mobile_phone
+        }
+        console.log(JSON.stringify(userData))
+
+        this.$.updateUser.body = JSON.stringify(userData);
+        this.$.updateUser.headers['Content-Type'] = 'application/json';
+        this.$.updateUser.generateRequest();
+      }
+
+
+
+
+
+    }//Cierre class
+
+    window.customElements.define(VisorUsuario.is, VisorUsuario);
+  </script>
+</dom-module>

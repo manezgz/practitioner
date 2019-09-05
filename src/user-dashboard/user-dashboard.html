@@ -1,0 +1,76 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/app-layout/app-drawer/app-drawer.html">
+<link rel="import" href="../../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
+<link rel="import" href="../../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../../bower_components/app-layout/app-header-layout/app-header-layout.html">
+<link rel="import" href="../../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
+<link rel="import" href="../../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<!--<link rel="import" href="../../bower_components/app-route/app-location.html">-->
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/brum-global-variable/brum-global-variable.html">
+<link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
+
+<dom-module id="user-dashboard">
+  <template>
+    <!-- <style>
+      :host {
+        display: block;
+      }
+    </style> -->
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <h1>USER DASHBOARD</h1>
+    <iron-pages selected=[[page]] attr-for-selected="component-name">
+        <div component-name="login-usuario">
+          <h1>{{page}}</h1>
+          <login-usuario on-idlogin="loginusuarioevento"></login-usuario>
+        </div>
+        <div component-name="visor-usuario">
+          <h1>{{page}}</h1>
+          <visor-usuario id="visorusario" userid=[[userid]]></visor-usuario>
+        </div>
+    </iron-pages>
+
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class UserDashboard extends Polymer.Element {
+      static get is() { return 'user-dashboard'; }
+      static get properties() {
+        return {
+          componentName:{
+            type: String
+          },
+          page: {
+            type: String,
+            value:"login-usuario"
+          },
+          id : {
+            type: Number
+          }
+
+        };
+      }
+
+      showData(data){
+        console.log("Ha llegado respuesta");
+      }
+
+      loginusuarioevento(e) {
+            console.log(e);
+            this.page = "visor-usuario";
+            this.$.visorusario.userid = e.detail.username
+      }
+    }
+
+    window.customElements.define(UserDashboard.is, UserDashboard);
+
+  </script>
+</dom-module>

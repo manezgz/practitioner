@@ -1,0 +1,32 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="currobanco-app">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]!</h2>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class CurrobancoApp extends Polymer.Element {
+      static get is() { return 'currobanco-app'; }
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'currobanco-app'
+          }
+        };
+      }
+    }
+
+    window.customElements.define(CurrobancoApp.is, CurrobancoApp);
+  </script>
+</dom-module>
