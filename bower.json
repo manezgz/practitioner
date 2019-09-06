@@ -9,12 +9,16 @@
     "app-layout": "2.0.0",
     "app-route": "*",
     "iron-flex-layout": "^3.0.1",
-    "iron-iconset-svg": "^3.0.1",
+    "iron-iconset-svg": "2.0.0",
     "iron-media-query": "^3.0.1",
     "iron-selector": "^3.0.1",
     "paper-icon-button": "2.0.0",
     "brum-global-variable": "SieBrum/brum-global-variable#^1.0.6",
-    "iron-localstorage": "2.0.0"
+    "iron-localstorage": "2.0.0",
+    "iron-input": "2.0.1",
+    "paper-button": "2.0.0",
+    "paper-input": "2.0.5",
+    "app-storage": "2.0.0"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^6.0.0",

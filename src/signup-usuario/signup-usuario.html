@@ -7,7 +7,7 @@
 <link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
 <link rel="import" href="../shared-styles.html">
 
-<dom-module id="login-usuario">
+<dom-module id="signup-usuario">
  <template>
     <style include="shared-styles">
       :host {
@@ -23,6 +23,15 @@
       .alert-error {
         background: #ffcdd2;
         border: 1px solid #f44336;
+        border-radius: 3px;
+        color: #333;
+        font-size: 14px;
+        padding: 10px;
+        font-family: 'Open Sans'
+      }
+      .alert-ok {
+        background: #D5EDDA;
+        border: 1px solid #C4E5CC;
         border-radius: 3px;
         color: #333;
         font-size: 14px;
@@ -57,32 +66,60 @@
    <span hidden$="{{!isLogged}}">Bienvenid@ de nuevo</span>
    <span hidden$="{{!isError}}">{{errorMessage}}</span>-->
    <div class="card">
-        <h1>Log In</h1>
+      <div id="unauthenticated" hidden$="[[storedUser.loggedin]]">
+        <h1>Sign Up</h1>
 
-        <p style="font-family: 'Open Sans'"><strong>Log in</strong> or <strong>sign up to access CurroBank</strong></p>
+        <p style="font-family: 'Open Sans'">Fill in your personal Information to sign up CurroBank</strong></p>
 
         <template is="dom-if" if="[[error]]">
           <p class="alert-error"><strong>Error:</strong> [[error]]</p>
         </template>
 
-        <paper-input-container>
-          <label slot="input">Username</label>
-          <iron-input slot="input" bind-value="{{username}}">
-            <input class="input-style" id="username" type="text" value="{{username}}" placeholder="Username">
-          </iron-input>
-        </paper-input-container>
+        <template is="dom-if" if="[[signup_ok]]">
+          <p class="alert-ok">[[signup_ok]]</p>
+        </template>
+
 
         <paper-input-container>
-          <label>Password</label>
+          <label slot="input">Email</label>
+          <iron-input slot="input" bind-value="{{email}}">
+            <input class="input-style" id="username" type="text" value="{{email}}" placeholder="Email">
+          </iron-input>
+        </paper-input-container>
+        <paper-input-container>
+          <label slot="input">First Name</label>
+          <iron-input slot="input" bind-value="{{first_name}}">
+            <input class="input-style" id="first_name" type="text" value="{{first_name}}" placeholder="First Name">
+          </iron-input>
+        </paper-input-container>
+        <paper-input-container>
+          <label slot="input">Last Name</label>
+          <iron-input slot="input" bind-value="{{last_name}}">
+            <input class="input-style" id="last_name" type="text" value="{{last_name}}" placeholder="Last Name">
+          </iron-input>
+        </paper-input-container>
+        <paper-input-container>
+          <label slot="input">Password</label>
           <iron-input slot="input" bind-value="{{password}}">
             <input id="password" type="password" value="{{password}}" placeholder="Password">
           </iron-input>
         </paper-input-container>
+        <paper-input-container>
+          <label slot="input">Mobile Phone</label>
+          <iron-input slot="input" bind-value="{{mobile_phone}}">
+            <input class="input-style" id="mobile_phone" type="text" value="{{mobile_phone}}" placeholder="Mobile Phone">
+          </iron-input>
+        </paper-input-container>
 
         <div class="wrapper-btns">
-          <paper-button raised class="primary" on-tap="login">Log In</paper-button>
-          <paper-button class="link" on-tap="signup">Sign Up</paper-button>
+          <template is="dom-if" if="[[signupbtn_show]]">
+            <paper-button raised class="primary" on-tap="signup">Sign Up</paper-button>
+          </template>
+          <template is="dom-if" if="[[signup_ok]]">
+            <paper-button raised class="primary" on-tap="login">Log In</paper-button>
+          </template
         </div>
+      </div>
       <!--<div id="authenticated" hidden$="[[!storedUser.loggedin]]">
         <h2>Hello, [[storedUser.name]]!</h2>
         <p>You are currently logged in. You can access <a href="/secret-quotes">Secret Quotes</a>!</p>
@@ -91,8 +128,8 @@
     </div>
 
    <iron-ajax
-     id="doLogin"
-     url="https://localhost:8000/currobanco/v1/api/auth/login/"
+     id="doSignup"
+     url="https://localhost:8000/currobanco/v1/api/auth/signup/"
      handle-as="json"
      content-type="application/json"
      method="POST"
@@ -107,77 +144,79 @@
     * @customElement
     * @polymer
     */
-   class LoginUsuario extends Polymer.Element {
-     static get is() { return 'login-usuario'; }
+   class SignupUsuario extends Polymer.Element {
+     static get is() { return 'signup-usuario'; }
      static get properties() {
        return {
-         username: {
+         email: {
            type: String,
-           value: "manezgz@hotmail.com"
+           value: ""
          }, password: {
            type: String,
-           value: "josemanuel"
-         }, isLogged: {
-           type: Boolean,
-           value: false
-         }, isError: {
-           type: Boolean,
-           value: false
+           value: ""
+         }, first_name: {
+           type: String,
+           value: ""
+         }, last_name: {
+           type: String,
+           value: ""
+         }, mobile_phone: {
+           type: String,
+           value: ""
          }, error: {
            type: String,
            value: ""
+         },signup_ok: {
+           type: String,
+           value: ""
+         },signupbtn_show: {
+           type: String,
+           value: "SI"
          }
        };
      }
 
-     login(){
-       console.log("--login--");
-       console.log(this.username);
+     signup(){
+       console.log("--signup--");
 
-       var loginData = {
-         "username":this.username,
-         "password":this.password
+       var signupData = {
+         "email":this.email,
+         "password":this.password,
+         "first_name":this.first_name,
+         "last_name":this.last_name,
+         "mobile_phone":this.mobile_phone
        }
 
-       this.$.doLogin.body = JSON.stringify(loginData);
-       this.$.doLogin.generateRequest();
+       this.$.doSignup.body = JSON.stringify(signupData);
+       this.$.doSignup.generateRequest();
 
-       console.log("Petción de lgin enviada");
-     }
-
-     signup(){
-         this.dispatchEvent(
-         new CustomEvent(
-           "idsignuproute",
-           {
-             "detail":{}
-           }
-         ))
+       console.log("Petción de signup enviada");
      }
 
      manageAJAXResponse(data){
        console.log("--manageAJAXResponse--");
        //<--ESTO ES EL TOKEN -->
-       console.log(data.detail.response.data.token);
-       this.isLogged = true;
-       this.isError = false;
+       //console.log(data.detail.response.data.token);
+       console.log(data)
+       this.signup_ok = "User Registered Successfully";
+       this.error=null
+       this.signupbtn_show=null
+     }
+
+     login(){
        this.dispatchEvent(
        new CustomEvent(
-         "idlogin",
+         "idloginroute",
          {
-           "detail":{"token": data.detail.response.data.token,
-                     "username": this.username
+           "detail":{"token": "",
+                     "username": ""
                     }
          }
        )
-     )
-
+      )
      }
 
      showError(error){
-       console.log("--showError--");
-       this.isLogged = false;
-       this.isError = true;
        if(error.detail.request.xhr.response.error_msg!=undefined){
          this.error=error.detail.request.xhr.response.error_msg
        }else{
@@ -187,6 +226,6 @@
      }
    } //Close class
 
-   window.customElements.define(LoginUsuario.is, LoginUsuario);
+   window.customElements.define(SignupUsuario.is, SignupUsuario);
  </script>
 </dom-module>

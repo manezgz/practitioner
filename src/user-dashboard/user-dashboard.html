@@ -5,34 +5,109 @@
 <link rel="import" href="../../bower_components/app-layout/app-header-layout/app-header-layout.html">
 <link rel="import" href="../../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
 <link rel="import" href="../../bower_components/app-layout/app-toolbar/app-toolbar.html">
-<!--<link rel="import" href="../../bower_components/app-route/app-location.html">-->
 <link rel="import" href="../../bower_components/app-route/app-route.html">
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../../bower_components/brum-global-variable/brum-global-variable.html">
 <link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
+<link rel="import" href="../icons.html">
 
 <dom-module id="user-dashboard">
   <template>
-    <!-- <style>
+    <style>
       :host {
+        --app-primary-color: #4285f4;
+        --app-secondary-color: black;
         display: block;
       }
-    </style> -->
+      app-drawer-layout:not([narrow]) [drawer-toggle] {
+        display: none;
+      }
+      app-header {
+        color: #fff;
+        background-color: var(--app-primary-color);
+      }
+      app-header paper-icon-button {
+        --paper-icon-button-ink-color: white;
+      }
+      .drawer-list {
+        margin: 0 20px;
+      }
+      .drawer-list a {
+        display: block;
+        padding: 0 16px;
+        text-decoration: none;
+        color: var(--app-secondary-color);
+        line-height: 40px;
+      }
+      .drawer-list a.iron-selected {
+        color: black;
+        font-weight: bold;
+      }
+      app-header .greeting,
+      app-header a {
+        color: #fff;
+        font-size: 15px;
+        font-family: 'Open Sans'
 
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <h1>USER DASHBOARD</h1>
-    <iron-pages selected=[[page]] attr-for-selected="component-name">
-        <div component-name="login-usuario">
-          <h1>{{page}}</h1>
-          <login-usuario on-idlogin="loginusuarioevento"></login-usuario>
-        </div>
-        <div component-name="visor-usuario">
-          <h1>{{page}}</h1>
-          <visor-usuario id="visorusario" userid=[[userid]]></visor-usuario>
-        </div>
-    </iron-pages>
+      }
+      app-header .greeting {
+        border-right: 1px solid rgba(255,255,255,.5);
+        display: inline-block;
+        padding-right: 6px;
+      }
+    </style>
+
+    <iron-localstorage
+      name="token-storage"
+      value="{{storedUser}}"
+      on-iron-localstorage-load-empty="notokenstored"
+      on-iron-localstorage-load="tokenstored">
+    </iron-localstorage>
+    <iron-ajax
+      id="doLogout"
+      url="https://localhost:8000/currobanco/v1/api/auth/logout/"
+      handle-as="json"
+      content-type="application/json"
+      method="POST"
+      on-response="manageAJAXResponse"
+      on-error="showError"
+    >
+    </iron-ajax>
+    <app-drawer-layout fullbleed narrow="{{narrow}}">
+
+      <!-- Main content -->
+      <app-header-layout has-scrolling-region>
+
+        <app-header slot="header" condenses reveals effects="waterfall">
+          <app-toolbar>
+            <paper-icon-button icon="my-icons:menu" drawer-toggle></paper-icon-button>
+            <div main-title style="font-family: 'Open Sans';font-size: 28px;">CurroBank</div>
+            <div >
+              <!--<span class="greeting">Hi [[storedUser.name]]!</span>-->
+              <template is="dom-if" if="[[storedUser]]">
+                <paper-button style="font-size: 14px;font-family: 'Open Sans';font-weight: bold" on-tap="logout">
+                    Logout
+                </paper-button>
+              </template>
+            </div>
+          </app-toolbar>
+        </app-header>
+
+        <iron-pages selected=[[page]] attr-for-selected="component-name">
+            <div component-name="login-usuario">
+              <login-usuario on-idlogin="loginusuarioevento" on-idsignuproute="signupusuarioredirect"></login-usuario>
+            </div>
+            <div component-name="visor-usuario">
+              <visor-usuario id="visorusario" userid=[[userid]]></visor-usuario>
+            </div>
+            <div component-name="signup-usuario">
+              <signup-usuario id="signup" on-idloginroute="loginusuarioredirect"></visor-usuario>
+            </div>
+        </iron-pages>
+      </app-header-layout>
+    </app-drawer-layout>
 
   </template>
 
@@ -54,8 +129,8 @@
           },
           id : {
             type: Number
-          }
-
+          },
+          storedUser: Object
         };
       }
 
@@ -63,11 +138,60 @@
         console.log("Ha llegado respuesta");
       }
 
+      tokenstored(e){
+        console.log('Token Stored')
+        console.log(this.storedUser.token)
+        console.log(this.storedUser.username)
+        console.log('---------')
+        this.$.visorusario.userid = this.storedUser.username
+        this.$.visorusario.storedUser = this.storedUser
+        this.page = "visor-usuario";
+      }
+
+      notokenstored(e){
+        console.log('No token stored');
+      }
+
+      logout(e){
+        console.log('logout')
+        var data = {
+          "username":this.storedUser.username
+        }
+        this.$.doLogout.body = JSON.stringify(data);
+        this.$.doLogout.generateRequest();
+      }
+
       loginusuarioevento(e) {
-            console.log(e);
             this.page = "visor-usuario";
+            this.storedUser = {
+             token: e.detail.token,
+             username: e.detail.username,
+            };
             this.$.visorusario.userid = e.detail.username
       }
+
+      signupusuarioredirect(e) {
+            this.page = "signup-usuario";
+      }
+
+      loginusuarioredirect(e) {
+            this.page = "login-usuario";
+      }
+
+      manageAJAXResponse(data){
+        console.log("--manageAJAXResponse--");
+        //<--ESTO ES EL TOKEN -->
+        this.storedUser = null
+        this.page = "login-usuario";
+
+      }
+
+      showError(error){
+        console.log("--showError--");
+
+      }
+
+
     }
 
     window.customElements.define(UserDashboard.is, UserDashboard);
