@@ -1,0 +1,145 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/iron-input/iron-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/brum-global-variable/brum-global-variable.html">
+<link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
+<link rel="import" href="../../bower_components/geo-location/geo-location.html">
+<link rel="import" href="../../bower_components/paper-weather/paper-weather.html">
+<link rel="import" href="../shared-styles.html">
+
+<dom-module id="visor-info">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        padding: 10px;
+      }
+      .wrapper-btns {
+        margin-top: 15px;
+      }
+      paper-button.link {
+        color: #757575;
+      }
+      .alert-error {
+        background: #ffcdd2;
+        border: 1px solid #f44336;
+        border-radius: 3px;
+        color: #333;
+        font-size: 14px;
+        padding: 10px;
+        font-family: 'Open Sans'
+      }
+
+      .box {
+         display: flex;
+         align-items:center;
+
+      }
+      input {
+        position: relative; /* to make a stacking context */
+        outline: none;
+        box-shadow: none;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        max-width: 100%;
+        background: transparent;
+        border: none;
+        color: var(--paper-input-container-input-color, var(--primary-text-color));
+        -webkit-appearance: none;
+        text-align: inherit;
+        vertical-align: bottom;
+        /* Firefox sets a min-width on the input, which can cause layout issues */
+        min-width: 0;
+        @apply --paper-font-subhead;
+        @apply --paper-input-container-input;
+      }
+    </style>
+    <div component-name="visor-infogral">
+      <visor-infogral id="visorinfogral" on-idlistaccountsroute="listaccountsredirect" on-idmodifyuserroute="modifyuserredirect" userid=[[userid]]></visor-infogral>
+    </div>
+    <iron-pages selected=[[page]] attr-for-selected="component-name">
+        <div component-name="visor-infouser">
+          <visor-infouser id="visorinfouser" userid=[[userid]]></visor-infouser>
+        </div>
+    </iron-pages>
+
+    <!--<div class="card">
+      <geo-location latitude="{{latitude}}" longitude="{{longitude}}"></geo-location>
+      <h1 style="font-family: 'Open Sans'" align="center">Personal Area</h1>
+      <div class="box">
+        <img style="vertical-align:middle" src="../../images/icons8-spock-40.png">
+        <span style=""><h2 style="font-family: 'Open Sans'">  Welcome [[first_name]] !!</h2></span>
+      </div>
+      <div class="box">
+        <img style="vertical-align:middle" src="../../images/icons8-location-40.png">
+        <span style=""><h2 style="font-family: 'Open Sans'">     You are located in {{geo_city}} , {{geo_country}}</h2></span>
+      </div>-->
+
+      <!--<paper-weather list unit="f" location="{{geo_city}},{{geo_country}}"></paper-weather>->
+      <!--<input type="text" value="{{first_name::input}}"></input></br>
+      <input type="text" value="{{last_name::input}}"></input></br>
+      <input type="text" value="{{mobile_phone::input}}"></input></br>
+      <button on-click="edituserdata">Edit</button>-->
+      <iron-ajax
+        id="getUser"
+        url="https://localhost:8000/currobanco/v1/api/services/users/{{userid}}"
+        handle-as="json"
+        on-response="showData">
+      </iron-ajax>
+
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class VisorInfo extends Polymer.Element {
+      static get is() { return 'visor-info'; }
+      static get properties() {
+        return {
+          userid:{
+            type: Number,
+            observer: "_useridchanged"
+          },storedUser: Object
+          ,page: {
+            type: String,
+            value:""
+          },user_data:Object
+
+        };
+      }
+
+
+      showData(data){
+        this.user_data=data.detail.response;
+        console.log('Show Data')
+        console.log(this.user_data)
+        this.$.visorinfogral.userid = this.storedUser.username;
+        this.$.visorinfogral.storedUser = this.storedUser
+        this.$.visorinfogral.first_name = this.user_data.first_name;
+        this.$.visorinfogral.last_name=this.user_data.last_name;
+        this.$.visorinfouser.user=this.user_data;
+        //this.$.visorinfogral.email=data.detail.response.email;
+        //this.$.visorinfogral.mobile_phone=data.detail.response.mobile_phone;
+      }
+
+      _useridchanged(newValue,oldValue){
+        //El dolar es para acceso al elemento local
+        console.log('User Id Cahanged!!!')
+        this.$.getUser.generateRequest();
+      }
+
+      modifyuserredirect(){
+        console.log('Cambiamos page del iron-pages')
+        this.page='visor-infouser'
+      }
+
+    }//Cierre class
+
+    window.customElements.define(VisorInfo.is, VisorInfo);
+  </script>
+</dom-module>

@@ -1,0 +1,177 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/iron-input/iron-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/brum-global-variable/brum-global-variable.html">
+<link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
+<link rel="import" href="../../bower_components/geo-location/geo-location.html">
+<link rel="import" href="../../bower_components/paper-weather/paper-weather.html">
+<link rel="import" href="../shared-styles.html">
+
+<dom-module id="visor-infouser">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        padding: 10px;
+      }
+      .wrapper-btns {
+        margin-top: 15px;
+      }
+      paper-button.link {
+        color: #757575;
+      }
+      .alert-error {
+        background: #ffcdd2;
+        border: 1px solid #f44336;
+        border-radius: 3px;
+        color: #333;
+        font-size: 14px;
+        padding: 10px;
+        font-family: 'Open Sans'
+      }
+      .alert-ok {
+        background: #D5EDDA;
+        border: 1px solid #C4E5CC;
+        border-radius: 3px;
+        color: #333;
+        font-size: 14px;
+        padding: 10px;
+        font-family: 'Open Sans'
+      }
+      input {
+        position: relative; /* to make a stacking context */
+        outline: none;
+        box-shadow: none;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        max-width: 100%;
+        background: transparent;
+        border: none;
+        color: var(--paper-input-container-input-color, var(--primary-text-color));
+        -webkit-appearance: none;
+        text-align: inherit;
+        vertical-align: bottom;
+        /* Firefox sets a min-width on the input, which can cause layout issues */
+        min-width: 0;
+        @apply --paper-font-subhead;
+        @apply --paper-input-container-input;
+      }
+    </style>
+    <div class="card">
+      <h1 style="font-family: 'Open Sans'" align="center">User Info</h1>
+
+      <template is="dom-if" if="[[message_error]]">
+        <p class="alert-error"><strong>Error:</strong> [[message_error]]</p>
+      </template>
+
+      <template is="dom-if" if="[[message_ok]]">
+        <p class="alert-ok">[[message_ok]]</p>
+      </template>
+
+      <paper-input-container>
+        <label slot="input">First Name</label>
+        <iron-input slot="input" bind-value="{{user.first_name}}">
+          <input class="input-style" id="username" type="text" value="{{user.first_name}}">
+        </iron-input>
+      </paper-input-container>
+      <paper-input-container>
+        <label slot="input">Last Name</label>
+        <iron-input slot="input" bind-value="{{user.last_name}}">
+          <input class="input-style" id="username" type="text" value="{{user.last_name}}">
+        </iron-input>
+      </paper-input-container>
+      <paper-input-container>
+        <label slot="input">Mobile Phone</label>
+        <iron-input slot="input" bind-value="{{user.mobile_phone}}">
+          <input class="input-style" id="username" type="text" value="{{user.mobile_phone}}" >
+        </iron-input>
+      </paper-input-container>
+      <div class="wrapper-btns">
+          <paper-button raised class="primary" on-tap="edituserdata">Edit User Info</paper-button>
+      </div>
+
+
+
+      <iron-ajax
+        id="updateUser"
+        method="PUT"
+        url="https://localhost:8000/currobanco/v1/api/services/users/{{userid}}"
+        handle-as="json"
+        on-response="editUserResponse"
+        on-error="showError">
+      </iron-ajax>
+
+    </div>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class VisorInfouser extends Polymer.Element {
+      static get is() { return 'visor-infouser'; }
+      static get properties() {
+        return {
+          user:Object,
+          storedUser: Object,
+          message_error:String,
+          message_ok:String
+        };
+      }
+
+
+      showData(data){
+        console.log("Estoy en visor-usuario");
+        console.log("Ha llegado respuesta");
+        console.log(data.detail.response);
+        console.log(data.detail.response.id);
+        console.log(data.detail.response.first_name);
+        console.log(data.detail.response.last_name);
+        console.log(data.detail.response.email);
+        this.user.first_name = data.detail.response.first_name;
+        this.user.last_name=data.detail.response.last_name;
+        this.user.email=data.detail.response.email;
+        this.user.mobile_phone=data.detail.response.mobile_phone;
+      }
+
+
+      showError(error){
+        if(error.detail.request.xhr.response.error_msg!=undefined){
+          this.message_error=error.detail.request.xhr.response.error_msg
+        }else{
+          this.message_error=error.detail.request.xhr.response.data.error_msg
+        }
+      }
+
+      editUserResponse(data){
+        this.message_ok = "User Info Updated Successfully";
+        this.message_error=null
+      }
+
+      edituserdata(){
+        var userData = {
+          "email":this.user.email,
+          "first_name":this.user.first_name,
+          "last_name":this.user.last_name,
+          "mobile_phone":this.user.mobile_phone
+        }
+        console.log(JSON.stringify(userData))
+
+        this.$.updateUser.body = JSON.stringify(userData);
+        this.$.updateUser.headers['Content-Type'] = 'application/json';
+        this.$.updateUser.generateRequest();
+      }
+
+
+
+
+
+    }//Cierre class
+
+    window.customElements.define(VisorInfouser.is, VisorInfouser);
+  </script>
+</dom-module>

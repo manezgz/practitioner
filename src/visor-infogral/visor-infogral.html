@@ -5,9 +5,11 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/brum-global-variable/brum-global-variable.html">
 <link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
+<link rel="import" href="../../bower_components/geo-location/geo-location.html">
+<link rel="import" href="../../bower_components/paper-weather/paper-weather.html">
 <link rel="import" href="../shared-styles.html">
 
-<dom-module id="visor-usuario">
+<dom-module id="visor-infogral">
   <template>
     <style include="shared-styles">
       :host {
@@ -29,6 +31,12 @@
         padding: 10px;
         font-family: 'Open Sans'
       }
+
+      .box {
+         display: flex;
+         align-items:center;
+
+      }
       input {
         position: relative; /* to make a stacking context */
         outline: none;
@@ -49,26 +57,39 @@
         @apply --paper-input-container-input;
       }
     </style>
+
     <div class="card">
-      <h1>Persona Area</h1>
-      <h3>Welcome [[first_name]] !!</h3>
-      <input type="text" value="{{first_name::input}}"></input></br>
-      <input type="text" value="{{last_name::input}}"></input></br>
-      <input type="text" value="{{mobile_phone::input}}"></input></br>
-      <button on-click="edituserdata">Edit</button>
+      <geo-location latitude="{{latitude}}" longitude="{{longitude}}"></geo-location>
+      <h1 style="font-family: 'Open Sans'" align="center">Personal Area</h1>
+      <div class="box">
+        <img style="vertical-align:middle" src="../../images/icons8-spock-40.png">
+        <span style=""><h2 style="font-family: 'Open Sans'">  Welcome [[first_name]] !!</h2></span>
+      </div>
+      <div class="box">
+        <img style="vertical-align:middle" src="../../images/icons8-location-40.png">
+        <span style=""><h2 style="font-family: 'Open Sans'">     You are located in {{geo_city}} , {{geo_country}}</h2></span>
+      </div>
+
       <iron-ajax
-        id="getUser"
-        url="https://localhost:8000/currobanco/v1/api/services/users/{{userid}}"
+        id="getLocalization"
+        method="GET"
+        url="https://eu1.locationiq.com/v1/reverse.php?key=843b357d92e808&lat={{latitude}}&lon={{longitude}}&format=json"
         handle-as="json"
-        on-response="showData">
+        on-response="getLocalizationResponse">
       </iron-ajax>
       <iron-ajax
-        id="updateUser"
-        method="PUT"
-        url="https://localhost:8000/currobanco/v1/api/services/users/{{userid}}"
+        id="getWeather"
+        method="GET"
+        url="https://api.openweathermap.org/data/2.5/weather?lat={{latitude}}&lon={{longitude}}&APPID=ed38f5a396007c62d5ed37d8e2f3df37"
         handle-as="json"
-        on-response="editUserResponse">
+        on-response="getWeatherResponse">
       </iron-ajax>
+
+      <div class="wrapper-btns" align="center">
+          <paper-button raised class="primary" on-tap="edituserinfo">User Info</paper-button>
+          <paper-button raised class="primary" on-tap="myaccounts">My Accounts</paper-button>
+          <paper-button raised class="primary" on-tap="makemovement">Make Movement</paper-button>
+      </div>
     </div>
   </template>
 
@@ -77,10 +98,22 @@
      * @customElement
      * @polymer
      */
-    class VisorUsuario extends Polymer.Element {
-      static get is() { return 'visor-usuario'; }
+    class VisorInfogral extends Polymer.Element {
+      static get is() { return 'visor-infogral'; }
       static get properties() {
         return {
+          latitude: {
+            type: String
+          },longitude: {
+            type: String
+          },
+          geo_city: {
+            type: String,
+            value:"Seville"
+          },geo_country: {
+            type: String,
+            value:"France"
+          },
           first_name: {
             type: String
           }, last_name: {
@@ -96,6 +129,14 @@
 
         };
       }
+
+      static get observers() {
+        return [
+          '_observergeoloc(latitude, longitude)',
+          '_propschangedtoload(userid)'
+        ]
+      }
+
 
       showData(data){
         console.log("Estoy en visor-usuario");
@@ -115,9 +156,26 @@
         console.log(data);
       }
 
+      getLocalizationResponse(data){
+        this.geo_city=data.detail.response.address.city
+        this.geo_country=data.detail.response.address.country
+      }
+
+      getWeatherResponse(data){
+        console.log(data);
+      }
+
       _useridchanged(newValue,oldValue){
         //El dolar es para acceso al elemento local
-        this.$.getUser.generateRequest();
+        console.log('User Id Cahanged!!!')
+        //this.$.getUser.generateRequest();
+      }
+
+      _observergeoloc(latitude, longitude){
+        if(latitude!=null & longitude!=null){
+          this.$.getLocalization.generateRequest();
+          this.$.getWeather.generateRequest();
+        }
       }
 
       edituserdata(){
@@ -134,12 +192,35 @@
         this.$.updateUser.generateRequest();
       }
 
+      edituserinfo(){
+        this.dispatchEvent(
+        new CustomEvent(
+          "idmodifyuserroute",
+          {
+            "detail":{}
+          }
+        ))
+      }
+
+      myaccounts(){
+        this.dispatchEvent(
+        new CustomEvent(
+          "idlistaccountsroute",
+          {
+            "detail":{}
+          }
+        ))
+      }
+
+      makemovement(){
+
+      }
 
 
 
 
     }//Cierre class
 
-    window.customElements.define(VisorUsuario.is, VisorUsuario);
+    window.customElements.define(VisorInfogral.is, VisorInfogral);
   </script>
 </dom-module>

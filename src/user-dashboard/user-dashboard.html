@@ -99,11 +99,11 @@
             <div component-name="login-usuario">
               <login-usuario on-idlogin="loginusuarioevento" on-idsignuproute="signupusuarioredirect"></login-usuario>
             </div>
-            <div component-name="visor-usuario">
-              <visor-usuario id="visorusario" userid=[[userid]]></visor-usuario>
+            <div component-name="visor-info">
+              <visor-info id="visorinfo" userid=[[userid]]></visor-info>
             </div>
             <div component-name="signup-usuario">
-              <signup-usuario id="signup" on-idloginroute="loginusuarioredirect"></visor-usuario>
+              <signup-usuario id="signup" on-idloginroute="loginusuarioredirect"></signup-usuario>
             </div>
         </iron-pages>
       </app-header-layout>
@@ -143,9 +143,9 @@
         console.log(this.storedUser.token)
         console.log(this.storedUser.username)
         console.log('---------')
-        this.$.visorusario.userid = this.storedUser.username
-        this.$.visorusario.storedUser = this.storedUser
-        this.page = "visor-usuario";
+        this.$.visorinfo.userid = this.storedUser.username
+        this.$.visorinfo.storedUser = this.storedUser
+        this.page = "visor-info";
       }
 
       notokenstored(e){
@@ -162,12 +162,12 @@
       }
 
       loginusuarioevento(e) {
-            this.page = "visor-usuario";
+            this.page = "visor-info";
             this.storedUser = {
              token: e.detail.token,
              username: e.detail.username,
             };
-            this.$.visorusario.userid = e.detail.username
+            this.$.visorinfo.userid = e.detail.username
       }
 
       signupusuarioredirect(e) {
