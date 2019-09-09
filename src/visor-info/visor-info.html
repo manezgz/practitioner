@@ -64,7 +64,19 @@
         <div component-name="visor-infouser">
           <visor-infouser id="visorinfouser" userid=[[userid]]></visor-infouser>
         </div>
+        <div component-name="visor-accounts">
+          <visor-accounts id="visoraccounts" trigger="[[trigger]]" on-idmakemovementsroute="makemovementsredirect" on-idgetmovementsroute="movementsredirect"></visor-accounts>
+        </div>
     </iron-pages>
+    <iron-pages selected=[[page2]] attr-for-selected="component-name">
+        <div component-name="visor-movements">
+          <visor-movements id="visormovements" iban_selected=[[iban_selected]]></visor-movements>
+        </div>
+        <div component-name="make-movement">
+          <make-movement id="makemovement" iban_selected=[[iban_selected]]></make-movement>
+        </div>
+    </iron-pages>
+
 
     <!--<div class="card">
       <geo-location latitude="{{latitude}}" longitude="{{longitude}}"></geo-location>
@@ -102,13 +114,17 @@
       static get properties() {
         return {
           userid:{
-            type: Number,
+            type: String,
             observer: "_useridchanged"
           },storedUser: Object
           ,page: {
             type: String,
             value:""
-          },user_data:Object
+          },page2: {
+            type: String,
+            value:""
+          },user_data:Object,
+          iban_selected:String
 
         };
       }
@@ -136,6 +152,29 @@
       modifyuserredirect(){
         console.log('Cambiamos page del iron-pages')
         this.page='visor-infouser'
+        this.page2=null;
+      }
+
+      movementsredirect(e){
+        console.log("Tb llego")
+        console.log(e.detail.iban_selected)
+        this.page2='visor-movements'
+        this.$.visormovements.iban_selected=e.detail.iban_selected
+
+      }
+
+      makemovementsredirect(e){
+        console.log("Tb llego a makemovements")
+        console.log(e.detail.iban_selected)
+        this.page2='make-movement'
+        this.$.makemovement.iban_selected=e.detail.iban_selected
+      }
+
+      listaccountsredirect(){
+        console.log('Cambiamos page del iron-pages visor-accounts')
+        this.page='visor-accounts'
+        this.page2=null;
+        this.$.visoraccounts.userid=this.userid
       }
 
     }//Cierre class

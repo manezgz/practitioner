@@ -1,0 +1,159 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/iron-input/iron-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/brum-global-variable/brum-global-variable.html">
+<link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
+<link rel="import" href="../../bower_components/geo-location/geo-location.html">
+<link rel="import" href="../../bower_components/paper-weather/paper-weather.html">
+<link rel="import" href="../../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../shared-styles.html">
+
+<dom-module id="visor-accounts">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        padding: 10px;
+      }
+      .wrapper-btns {
+        margin-top: 15px;
+      }
+      paper-button.link {
+        color: #757575;
+      }
+      .alert-error {
+        background: #ffcdd2;
+        border: 1px solid #f44336;
+        border-radius: 3px;
+        color: #333;
+        font-size: 14px;
+        padding: 10px;
+        font-family: 'Open Sans'
+      }
+      .alert-ok {
+        background: #D5EDDA;
+        border: 1px solid #C4E5CC;
+        border-radius: 3px;
+        color: #333;
+        font-size: 14px;
+        padding: 10px;
+        font-family: 'Open Sans'
+      }
+      input {
+        position: relative; /* to make a stacking context */
+        outline: none;
+        box-shadow: none;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        max-width: 100%;
+        background: transparent;
+        border: none;
+        color: var(--paper-input-container-input-color, var(--primary-text-color));
+        -webkit-appearance: none;
+        text-align: inherit;
+        vertical-align: bottom;
+        /* Firefox sets a min-width on the input, which can cause layout issues */
+        min-width: 0;
+        @apply --paper-font-subhead;
+        @apply --paper-input-container-input;
+      }
+    </style>
+    <div class="card">
+      <h1 style="font-family: 'Open Sans'" align="center">My Accounts</h1>
+
+      <iron-ajax
+        id="getAccounts"
+        url="https://localhost:8000/currobanco/v1/api/services/accounts/user/{{userid}}"
+        on-response="showData"
+        >
+      </iron-ajax>
+      <iron-list items="[[data]]" as="item">
+        <template>
+          <div>
+            <h3>&nbsp;Account: [[item.iban]]</h3>
+            <h3>&nbsp;Creation Date: [[item.creation_date]]</h3>
+            <h3>&nbsp;Balance: [[item.balance]]</h3>
+            <div class="wrapper-btns" align="center">
+              <paper-button raised class="primary" indexed_iban$='[[item.iban]]' on-tap="movements">View Movements</paper-button>
+              <paper-button raised class="primary" indexed_iban$='[[item.iban]]' on-tap="makemovements">Make Movement</paper-button>
+            </div>
+            <hr>
+          </div>
+        </template>
+      </iron-list>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class VisorAccounts extends Polymer.Element {
+      static get is() { return 'visor-accounts'; }
+      static get properties() {
+        return {
+          storedUser: Object,
+          userid:{
+            type: String,
+            observer: "_useridchanged"
+          },data:Object
+        };
+      }
+
+      _useridchanged(newValue,oldValue){
+        //El dolar es para acceso al elemento local
+        this.$.getAccounts.generateRequest();
+      }
+
+
+      showData(data){
+        console.log(data.detail.response.results)
+        this.data=data.detail.response.results
+        console.log(this.data)
+      }
+
+
+      showError(error){
+        if(error.detail.request.xhr.response.error_msg!=undefined){
+          this.message_error=error.detail.request.xhr.response.error_msg
+        }else{
+          this.message_error=error.detail.request.xhr.response.data.error_msg
+        }
+      }
+
+      makemovements(e){
+        console.log('Llego a movements')
+          var iban = e.target.getAttribute('indexed_iban');
+          this.dispatchEvent(
+          new CustomEvent(
+            "idmakemovementsroute",
+            {
+              "detail":{"iban_selected":iban}
+            }
+          ))
+      }
+
+      movements(e){
+        console.log('Llego a movements')
+          var iban = e.target.getAttribute('indexed_iban');
+          this.dispatchEvent(
+          new CustomEvent(
+            "idgetmovementsroute",
+            {
+              "detail":{"iban_selected":iban}
+            }
+          ))
+      }
+
+
+
+
+
+    }//Cierre class
+
+    window.customElements.define(VisorAccounts.is, VisorAccounts);
+  </script>
+</dom-module>

@@ -1,0 +1,203 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/iron-input/iron-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/brum-global-variable/brum-global-variable.html">
+<link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
+<link rel="import" href="../../bower_components/geo-location/geo-location.html">
+<link rel="import" href="../../bower_components/paper-weather/paper-weather.html">
+<link rel="import" href="../../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/neon-animation/web-animations.html">
+<link rel="import" href="../../bower_components/neon-animation/neon-animation.html">
+import '@polymer/paper-listbox/paper-listbox.js';
+<link rel="import" href="../shared-styles.html">
+
+<dom-module id="make-movement">
+  <template>
+     <style include="shared-styles">
+       :host {
+         display: block;
+         padding: 10px;
+       }
+       .wrapper-btns {
+         margin-top: 15px;
+       }
+       paper-button.link {
+         color: #757575;
+       }
+       .alert-error {
+         background: #ffcdd2;
+         border: 1px solid #f44336;
+         border-radius: 3px;
+         color: #333;
+         font-size: 14px;
+         padding: 10px;
+         font-family: 'Open Sans'
+       }
+       .alert-ok {
+         background: #D5EDDA;
+         border: 1px solid #C4E5CC;
+         border-radius: 3px;
+         color: #333;
+         font-size: 14px;
+         padding: 10px;
+         font-family: 'Open Sans'
+       }
+       input {
+         position: relative; /* to make a stacking context */
+         outline: none;
+         box-shadow: none;
+         margin: 0;
+         padding: 0;
+         width: 100%;
+         max-width: 100%;
+         background: transparent;
+         border: none;
+         color: var(--paper-input-container-input-color, var(--primary-text-color));
+         -webkit-appearance: none;
+         text-align: inherit;
+         vertical-align: bottom;
+         /* Firefox sets a min-width on the input, which can cause layout issues */
+         min-width: 0;
+         @apply --paper-font-subhead;
+         @apply --paper-input-container-input;
+       }
+     </style>
+    <!--<h1>LOGIN USUARIO</h1>
+    <input placeholder="email" type="email" value="{{email::input}}" required></input></br>
+    <input placeholder="password" type="password" value="{{password::input}}" required></input>
+    <button on-click="login">Login</button>
+   </br>
+    <span hidden$="{{!isLogged}}">Bienvenid@ de nuevo</span>
+    <span hidden$="{{!isError}}">{{errorMessage}}</span>-->
+    <div class="card">
+        <h1 style="font-family: 'Open Sans'" align="center">Make Movement</h1>
+         <template is="dom-if" if="[[error]]">
+           <p class="alert-error"><strong>Error:</strong> [[error]]</p>
+         </template>
+
+         <template is="dom-if" if="[[ok]]">
+           <p class="alert-ok">[[ok]]</p>
+         </template>
+
+
+        <paper-dropdown-menu label="Type" id="dropdown_type" on-iron-select="_itemSelected">
+          <paper-listbox slot="dropdown-content" selected="0">
+            <paper-item value=""></paper-item>
+            <paper-item value="INGRESO">INGRESO</paper-item>
+            <paper-item value="REINTEGRO">REINTEGRO</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
+         <paper-input-container disabled="true">
+           <label slot="input">Iban</label>
+           <iron-input slot="input" bind-value="{{iban_selected}}">
+             <input class="input-style" id="iban" type="text" value="{{iban_selected}}" placeholder="Iban">
+           </iron-input>
+         </paper-input-container>
+         <paper-input-container>
+           <label slot="input">Value</label>
+           <iron-input slot="input" bind-value="{{value}}">
+             <input class="input-style" id="value" type="text" value="{{value}}" placeholder="Value">
+           </iron-input>
+         </paper-input-container>
+
+         <div class="wrapper-btns">
+             <paper-button raised class="primary" on-tap="makemovement">Make Movement</paper-button>
+         </div>
+       <!--<div id="authenticated" hidden$="[[!storedUser.loggedin]]">
+         <h2>Hello, [[storedUser.name]]!</h2>
+         <p>You are currently logged in. You can access <a href="/secret-quotes">Secret Quotes</a>!</p>
+         <log-out stored-user="{{storedUser}}"></log-out>
+       </div>-->
+     </div>
+
+    <iron-ajax
+      id="makeMovement"
+      url="https://localhost:8000/currobanco/v1/api/services/transactions/{{iban_selected}}"
+      handle-as="json"
+      content-type="application/json"
+      method="POST"
+      on-response="manageAJAXResponse"
+      on-error="showError"
+    >
+    </iron-ajax>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class MakeMovement extends Polymer.Element {
+      static get is() { return 'make-movement'; }
+      static get properties() {
+        return {
+          storedUser: Object,
+          userid:{
+            type: String
+          },iban_selected:{
+            type:String,
+            observer: "_ibanselectedChange"
+          },value:String,
+          type:String,
+          ok:String,
+          error:String
+        };
+      }
+      showTransactions(data){
+        console.log(data.detail.response.results)
+        this.movements=data.detail.response.results
+        //this.data=data.detail.response.results
+      }
+
+      _ibanselectedChange(newValue,oldValue){
+        //El dolar es para acceso al elemento local
+        console.log('Actualizado iban_selected')
+      }
+      _itemSelected(e){
+        var selectedItem = e.target.selected;
+        if(selectedItem==1){
+          this.type="INGRESO"
+        }else if(selectedItem==2){
+          this.type="REINTEGRO"
+        }
+      }
+
+      makemovement(){
+        console.log(this.$.dropdown_type)
+        var data={
+          "iban":this.iban_selected,
+          "type":this.type,
+          "value":this.value
+        }
+        this.$.makeMovement.body = JSON.stringify(data);
+        this.$.makeMovement.generateRequest();
+      }
+
+      manageAJAXResponse(data){
+        this.ok="Movement executed Successfully"
+        this.error=null
+      }
+
+      showError(){
+        this.ok=null
+        console.log("--showError--");
+        if(error.detail.request.xhr.response.error_msg!=undefined){
+          this.error=error.detail.request.xhr.response.error_msg
+        }else{
+          this.error=error.detail.request.xhr.response.data.error_msg
+        }
+      }
+
+
+
+
+
+    }//Cierre class
+
+    window.customElements.define(MakeMovement.is, MakeMovement);
+  </script>
+</dom-module>
